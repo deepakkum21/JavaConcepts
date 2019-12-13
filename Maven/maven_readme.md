@@ -215,4 +215,292 @@ Maven can have two settings files working at a time:
 - For the **compile scope**, all dependencies with runtime scope will be pulled in with the runtime scope, in the project and all dependencies with the compile scope will be pulled in with the compile scope, in the project
 - For the provided scope, both runtime and compile scope dependencies will be pulled in with the provided scope, in the project
 - For the test scope, both runtime and compile scope transitive dependencies will be pulled in with the test scope, in the project
-- For the runtime scope, both runtime and compile scope transitive dependencies will be pulled in with the runtime scope, in the project                                                
+- For the runtime scope, both runtime and compile scope transitive dependencies will be pulled in with the runtime scope, in the project   
+
+
+## Maven – POM File
+1. POM **(Project Object Model)** is an XML file that **contains information about the project and configuration** details used by Maven to build the project i.e. sourcecode location, project dependencies etc. 
+2. This file **must be named as pom.xml** and **placed under root folder** of project. 
+3. When executing a task or goal, maven reads the POM, gets the needed configuration information, then executes the goal. 
+
+### Super POM
+1. POM files **maintain a parent-child relationship between them**. 
+2. A**ny pom file, you create for your project will finally be extending this super pom file**. 
+3. From maven 2.2 onwards, this is super pom file content.
+4.     <project>
+        <modelVersion>4.0.0</modelVersion>
+        <name>Maven Default Project</name>
+        
+        <repositories>
+            <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <layout>default</layout>
+            <url>http://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            </repository>
+        </repositories>
+        
+        <pluginRepositories>
+            <pluginRepository>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            </pluginRepository>
+        </pluginRepositories>
+        
+        <build>
+            <directory>target</directory>
+            <outputDirectory>target/classes</outputDirectory>
+            <finalName>${artifactId}-${version}</finalName>
+            <testOutputDirectory>target/test-classes</testOutputDirectory>
+            <sourceDirectory>src/main/java</sourceDirectory>
+            <scriptSourceDirectory>src/main/scripts</scriptSourceDirectory>
+            <testSourceDirectory>src/test/java</testSourceDirectory>
+            <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            </resources>
+            <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            </testResources>
+        </build>
+        
+        <reporting>
+            <outputDirectory>target/site</outputDirectory>
+        </reporting>
+        
+        <profiles>
+            <profile>
+            <id>release-profile</id>
+        
+            <activation>
+                <property>
+                <name>performRelease</name>
+                </property>
+            </activation>
+        
+            <build>
+                <plugins>
+                <plugin>
+                    <inherited>true</inherited>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+        
+                    <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                        <goal>jar</goal>
+                        </goals>
+                    </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <inherited>true</inherited>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+        
+                    <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                        <goal>jar</goal>
+                        </goals>
+                    </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <inherited>true</inherited>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+        
+                    <configuration>
+                    <updateReleaseInfo>true</updateReleaseInfo>
+                    </configuration>
+                </plugin>
+                </plugins>
+            </build>
+            </profile>
+        </profiles>
+        
+        </project>
+
+5. Few things to notice are:
+    - Default repo is maven repository.
+    - Default execution goal is ‘jar’.
+    - Default source code location is src/main/java.
+    - Default test code location is src/test/java.
+
+### Minimal POM Configuration
+1. The minimal POM configuration for any Maven project is extremely simple, which is as follows:
+2.      <project>
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>com.howtodoinjava</groupId>
+            <artifactId>MavenExample</artifactId>
+            <version>1.0.0</version>
+        </project>
+3. It requires:
+    - project root
+    - **modelVersion** – **should be set to 4.0.0**
+    - **groupId** – the id of the project’s group.
+    - **artifactId** – the id of the artifact (project)
+    - **version** – the version of the artifact under the specified group
+
+### Default POM Configuration
+1. It **depends on the type of archtype**, you have selected. e.g. for a quickstart project, this is default generated pom.xml file.
+2.     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd;
+            <modelVersion>4.0.0</modelVersion>
+            
+            <groupId>com.howtodoinjava.demo</groupId>
+            <artifactId>MavenExamples</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <packaging>jar</packaging>
+            
+            <name>MavenExamples</name>
+            <url>http://maven.apache.org</url>
+        
+            <properties>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+            </properties>
+        
+            <dependencies>
+                <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>3.8.1</version>
+                <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </project>
+
+### POM hierarchy
+- POM files** maintain a parent-child relationship** between them. 
+- A **child POM file inherits all the configuration** elements from its parent POM file. 
+- This is how Maven sticks to its design **philosophy, which is convention over configuration**.
+- The pom file **used by project is obtained by merging the project pom file, parent pom file (if any) and super pom file**. 
+- This pom file is known as effective pom file.
+- To get the effective pom file used by project, type below command in project’s root folder:       
+        `mvn help:effective-pom`
+
+## Parent Pom (PROJECT OBJECT MODEL)
+- Maven parent POM (or super POM) is used to structure the project **to avoid redundancies or duplicate configurations using inheritance between pom files**. 
+- It helps in easy maintenance in long term.
+- If any dependency or property is **configured in both parent and child POMs with different values then the child POM value will take the priority**.
+
+1. ### Parent POM Contents
+- A parent **POM can be declared with packaging pom**. 
+- It is **not meant to be distributed** because it is only referenced from other projects.
+- Maven parent pom can **contain almost everything and those can be inherited into child** pom files e.g
+    - **Common data** – Developers’ names, SCM address, distribution management etc.
+    - **Constants** – Such as version numbers
+    - **Common dependencies** – Common to all child. It has same effect as writing them several times in individual pom files.
+    - **Properties** – For example plugins, declarations, executions and IDs.
+    - **Configurations**
+    - **Resources**
+2. ### Parent POM and Child POM Example
+- To match a parent POM, Maven uses two rules:
+    - There is a pom file in project’s root directory or in given relative path.
+    - Reference from child POM file contains the same coordinates as stated in the parent POM file.
+
+3. ### Parent POM
+- Here parent POM has configured basic project information and two dependencies for JUnit and spring framework.
+-           <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd;
+                <modelVersion>4.0.0</modelVersion>
+            
+                <groupId>com.howtodoinjava.demo</groupId>
+                <artifactId>MavenExamples</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <packaging>pom</packaging>
+            
+                <name>MavenExamples Parent</name>
+                <url>http://maven.apache.org</url>
+            
+                <properties>
+                    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                    <junit.version>3.8.1</junit.version>
+                    <spring.version>4.3.5.RELEASE</spring.version>
+                </properties>
+            
+                <dependencies>
+                
+                    <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>${junit.version}</version>
+                        <scope>test</scope>
+                    </dependency>
+                    
+                    <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-core</artifactId>
+                        <version>${spring.version}</version>
+                    </dependency>
+                    
+                </dependencies>
+            </project>
+
+4. ### Child POM
+- Now child POM need to refer the parent POM using parent tag and specifying groupId/artifactId/version attributes. 
+- This pom file will inherit all properties and dependencies from parent POM and additionally can include extra sub-project specific dependencies as well.
+-           <project xmlns="http://maven.apache.org/POM/4.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+            
+                <!--The identifier of the parent POM-->
+                <parent>
+                    <groupId>com.howtodoinjava.demo</groupId>
+                    <artifactId>MavenExamples</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                </parent>
+            
+                <modelVersion>4.0.0</modelVersion>
+                <artifactId>MavenExamples</artifactId>
+                <name>MavenExamples Child POM</name>
+                <packaging>jar</packaging>
+            
+                <dependencies>        
+                    <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-security</artifactId>
+                        <version>${spring.version}</version>
+                    </dependency>
+                </dependencies>
+            
+            </project>
+
+5. ### Parent POM Relative Path
+- By **default, Maven looks for the parent POM first at project’s root, then the local repository, and lastly in the remote repository**. 
+- If parent POM file is not located in any other place, then you can use code tag. This relative path shall be relative to project root.
+-           <project xmlns="http://maven.apache.org/POM/4.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+            
+                <!--The identifier of the parent POM-->
+                <parent>
+                    <groupId>com.howtodoinjava.demo</groupId>
+                    <artifactId>MavenExamples</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <relativePath>../baseapp/pom.xml</relativePath>
+                </parent>
+            
+                <modelVersion>4.0.0</modelVersion>
+                <artifactId>MavenExamples</artifactId>
+                <name>MavenExamples Child POM</name>
+                <packaging>jar</packaging>
+            
+            </project>
