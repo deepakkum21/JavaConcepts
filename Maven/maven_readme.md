@@ -504,3 +504,66 @@ Maven can have two settings files working at a time:
                 <packaging>jar</packaging>
             
             </project>
+
+## Maven – Local, Remote and Central Repositories
+1. Maven repositories **are physical directories** which **contain packaged JAR files along with extra meta data** about these jar files.
+2. This **meta data is in form of POM files** which have jar file project information, including what other external dependencies this JAR file has.
+3. These other external dependencies are downloaded transitively into your project and become part of effective pom for the project.
+4. ### Local repository
+    - Maven **local repository reside in the developer’s machine**.
+    - Whenever you **run maven goals** which require these dependencies, **maven will download the dependencies from remote servers and store them into developer’s machine**.
+    - By default, Maven create the **local repository inside user home directory i.e. `C:/Users/superdev/.m2 directory`**. You can change the location of the local repository in setting.xml file using localRepository tag.
+    -       <settings>
+                <localRepository>
+                    C:\M2
+                </localRepository>
+            </settings>
+    - Having stored the dependencies into local machine has two main benefits. 
+        - First, **multiple projects can access same artifact so it reduces the storage need**. 
+        - Second, as dependency is **downloaded only once, it reduces the network usage as well**.
+
+5. ### Central repository
+    - Maven **central repository is located at** `http://repo.maven.apache.org/maven2/`
+    - Whenever you run **build job**, maven **first try to find dependency from local repository**. If it is **not there, then, by default, maven will trigger the download from this central repository location**.
+    - To override this default location, you can can make changes to your settings.xml file to use one or more mirrors.
+    - You do not need to make any special configuration to allow access the central repository, **except network proxy settings if you are behind any firewall**.
+
+6. ### Remote repository
+    - Apart from central repository, you may have needed **artifacts deployed on other remote locations**. For example, in your corporate office there may be **projects or modules specific to organization only**. In this cases, **organization can create remote repository and deploy these private artifacts**. This remote repository will be **accessible only inside organization**. 
+    - These maven remote repository **work exactly same way as maven’s central repository**. Whenever an artifact is **needed from these repositories, it is first downloaded to developer’s local repository and then it is used**.
+    - You can configure a remote repository in the **POM file or super POM file** in remote repository itself.   
+    -           <repositories>
+                    <repository>
+                        <id>org.source.repo</id>
+                        <url>http://maven.orgName.com/maven2/</url>
+                    </repository>
+                </repositories>
+
+## Maven local repository location & how to change it?
+- Maven is build and dependency management tool. 
+- It downloads required project dependencies to our local system and include them to project compilation or run-time as defined.
+
+1. ### Maven’s default local repository location
+- By default maven’s **local repository exist on** `‘${user.home}/.m2/repository’`.
+- We can change local repository location to some other location of our choice.
+
+2. ### Change maven local repository location
+- Navigate to path `{M2_HOME}\conf\` where M2_HOME is maven installation folder.
+- Open file settings.xml in edit mode in some text editor.
+- Fine the tag `<localRepository>`
+- Update the desired path in value of this tag. Save the file.
+-           <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            
+            <!-- localRepository
+            | The path to the local repository maven will use to store artifacts.
+            |
+            | Default: ${user.home}/.m2/repository -->
+            
+            <localRepository>E:/devsetup/M2</localRepository>
+            
+            ...
+            ...
+            
+            </settings>
