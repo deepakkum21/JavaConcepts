@@ -733,3 +733,101 @@ Maven can have two settings files working at a time:
                 </modules>
             
             </project>
+
+## Maven multi-module project in eclipse
+- Let’s create a maven project having modules packaging ear, war and jar types. We are creating the structure of an enterprise application where application will be deployed to applications servers (e.g. weblogic, websphere) as an EAR (Enterprise Application aRchive) file.
+- This **EAR (Enterprise Application Archive) will contain one (or many) WAR** (Web Application Resource) files and each war will contain the service project which has common code to all war files and packaging type in JAR (Java ARchive).
+    1. **Create a new maven projec**t in eclipse. Set it’s p**ackaging type to ‘pom‘**.
+    2. **Create a new maven module** in the parent project. Change its packaging type to 'ear'. This module can have maven ear plugin which will ultimately build the ear file to be deployed on servers.
+    3. Similar to ear module, create two more modules for war file and service jar file. Change their packaging respectively and add maven plugins.
+
+## Maven BOM – Bill Of Materials Dependency
+- If you have worked on maven in your projects for dependency management, then you must have faced one problem at least once or may be more than that. 
+- And the **problem is version mismatch**. It generally **happens when you got some dependencies which bring it’s related dependencies together with certain version**. And **if you have included those dependencies with different version numbers already, they can face undesired results in compile** time as well as runtime also.
+- Ideally to **avoid above issue you need to explicitly exclude the related dependency**, but it is quite possible that you can forget to do so.
+- To solve version mismatch issue, you can **use the concept of a “bill of materials” (BOM) dependency**. 
+- A **BOM dependency keep track of version numbers and ensure that all dependencies (both direct and transitive)** are at the same version.
+1. ### How to add maven BOM dependency
+    - Maven provides a tag dependencyManagement for this purpose. You need to add the maven bom information in this tag as follows. I am taking the example of Spring bom file.
+    -           <dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-framework-bom</artifactId>               // spring BOM
+                            <version>4.0.1.RELEASE</version>
+                            <type>pom</type>
+                            <scope>import</scope>
+                        </dependency>
+                    </dependencies>
+                </dependencyManagement>
+    - An added benefit of using the BOM is that you **no longer need to specify the version attribute when depending on Spring framework artifacts**. So it will work perfectly fine.  
+    -           <dependencies>
+                    <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-context</artifactId>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-web</artifactId>
+                    </dependency>
+                <dependencies>   
+
+2. ### Each project has it’s own maven bom file
+    - There is **no common or universal bom file**. 
+    - Each project (if support this feature) **provides its own bom file and manages versions of it’s related dependencies**.           
+    - RESTEasy Maven BOM dependency
+    -           <dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.jboss.resteasy</groupId>
+                            <artifactId>resteasy-bom</artifactId>
+                            <version>3.0.6.Final</version>
+                            <type>pom</type>
+                            <scope>import</scope>
+                        </dependency>
+                    </dependencies>
+                </dependencyManagement>
+    - JBOSS Maven BOM dependency
+
+                <dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.jboss.bom</groupId>
+                            <artifactId>jboss-javaee-6.0-with-tools</artifactId>
+                            <version>${some.version}</version>
+                            <type>pom</type>
+                            <scope>import</scope>
+                        </dependency>
+                    </dependencies>
+                </dependencyManagement> 
+    - Spring Maven BOM dependency
+
+                <dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-framework-bom</artifactId>
+                            <version>4.0.1.RELEASE</version>
+                            <type>pom</type>
+                            <scope>import</scope>
+                        </dependency>
+                    </dependencies>
+                </dependencyManagement>
+    - Jersey Maven BOM dependency
+
+                <dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.glassfish.jersey</groupId>
+                            <artifactId>jersey-bom</artifactId>
+                            <version>${jersey.version}</version>
+                            <type>pom</type>
+                            <scope>import</scope>
+                        </dependency>
+                    </dependencies>
+                </dependencyManagement>
+3. ### Maven BOM vs POM
+| **POM** | **BOM** |                   
+| ------- | ------- |               
+| Project Object Model | Bill Of materials |        
+| BOMs are ordinary pom.xml files — they **contain no source code** and their **only purpose is to declare their bundled modules**. It **defines the versions of all the artifacts that will be created in the library**. Other projects that wish to use the library should import this pom into the dependencyManagement section of their pom | POM files are **more than just dependencies**. For example organization and licenses, the URL of where the project lives, the project’s dependencies, plugins, profiles and many such things. It also **control the complete build process of the project**. |
