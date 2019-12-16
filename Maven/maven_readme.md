@@ -348,7 +348,7 @@ Maven can have two settings files working at a time:
 1. The minimal POM configuration for any Maven project is extremely simple, which is as follows:
 2.      <project>
             <modelVersion>4.0.0</modelVersion>
-            <groupId>com.howtodoinjava</groupId>
+            <groupId>com.deepak</groupId>
             <artifactId>MavenExample</artifactId>
             <version>1.0.0</version>
         </project>
@@ -365,7 +365,7 @@ Maven can have two settings files working at a time:
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd;
             <modelVersion>4.0.0</modelVersion>
             
-            <groupId>com.howtodoinjava.demo</groupId>
+            <groupId>com.deepak.demo</groupId>
             <artifactId>MavenExamples</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <packaging>jar</packaging>
@@ -422,7 +422,7 @@ Maven can have two settings files working at a time:
                 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd;
                 <modelVersion>4.0.0</modelVersion>
             
-                <groupId>com.howtodoinjava.demo</groupId>
+                <groupId>com.deepak.demo</groupId>
                 <artifactId>MavenExamples</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
                 <packaging>pom</packaging>
@@ -463,7 +463,7 @@ Maven can have two settings files working at a time:
             
                 <!--The identifier of the parent POM-->
                 <parent>
-                    <groupId>com.howtodoinjava.demo</groupId>
+                    <groupId>com.deepak.demo</groupId>
                     <artifactId>MavenExamples</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
                 </parent>
@@ -492,7 +492,7 @@ Maven can have two settings files working at a time:
             
                 <!--The identifier of the parent POM-->
                 <parent>
-                    <groupId>com.howtodoinjava.demo</groupId>
+                    <groupId>com.deepak.demo</groupId>
                     <artifactId>MavenExamples</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
                     <relativePath>../baseapp/pom.xml</relativePath>
@@ -654,10 +654,82 @@ Maven can have two settings files working at a time:
 ## Maven Create Java Project – Interactive vs Non-interactive modes
 1. ### Maven non-interactive mode
 -       $ mvn archetype:generate 
-            -DgroupId=com.howtodoinjava 
+            -DgroupId=com.deepak 
             -DartifactId=DemoJavaProject
             -DarchetypeArtifactId=maven-archetype-quickstart 
             -DinteractiveMode=false
 
 2. ### Maven interactive mode
 - `mvn archetype:generate`
+
+## Multi-module maven project – Console
+-  Create nested maven projects maven cli commands.
+1. ### Maven projects
+- The parent maven project is of packaging type ‘pom’. It makes the project as an aggregator – it won’t produce further artifacts.
+- Maven child projects are **independent maven projects but inherit properties from parent project**.
+- **All child projects inside a parent project can be build with a single command**.
+- It’s easier to define the relationships between the projects. Such as a jar project can be packaged into a war project.
+2. **Create parent project – packaging type ‘pom’**
+    -       $ mvn archetype:generate -DgroupId=com.deepak 
+                                -DartifactId=HelloWorldApp 
+                                -DarchetypeArtifactId=maven-archetype-quickstart 
+                                -DinteractiveMode=false
+    - Open pom.xml file and change packaging type to ‘pom’.
+    -       <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>com.deepak</groupId>
+                <artifactId>HelloWorldApp</artifactId>
+            
+                <!-- chaged fom jar to pom -->
+                <packaging>pom</packaging>
+            
+                <version>1.0-SNAPSHOT</version>
+                <name>HelloWorldApp</name>
+                <url>http://maven.apache.org</url>
+            </project>
+3. **Create ear, web and services modules**
+    -  navigate to parent project folder and create further modules for services (common code e.g. DAO), rws (rest services or web component) and ear.
+    -       $ cd HelloWorldApp
+ 
+            $ mvn archetype:generate -DgroupId=com.deepak 
+                                    -DartifactId=HelloWorldApp-ear 
+                                    -DarchetypeArtifactId=maven-archetype-quickstart 
+                                    -DinteractiveMode=false
+            
+            $ mvn archetype:generate -DgroupId=com.deepak 
+                                    -DartifactId=HelloWorldApp-service 
+                                    -DarchetypeArtifactId=maven-archetype-quickstart 
+                                    -DinteractiveMode=false
+            
+            $ mvn archetype:generate -DgroupId=com.deepak 
+                                    -DartifactId=HelloWorldApp-rws 
+                                    -DarchetypeArtifactId=maven-archetype-webapp 
+                                    -DinteractiveMode=false
+4. **Update maven plugins and dependencies**
+    -       <?xml version="1.0" encoding="UTF-8"?>
+            <project xmlns="http://maven.apache.org/POM/4.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                http://maven.apache.org/maven-v4_0_0.xsd">
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>com.deepak</groupId>
+                <artifactId>HelloWorldApp</artifactId>
+                <packaging>pom</packaging>
+                <version>1.0-SNAPSHOT</version>
+                <name>HelloWorldApp</name>
+                <url>http://maven.apache.org</url>
+            
+                <properties>
+                    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                    <maven.compiler.source>1.8</maven.compiler.source>
+                    <maven.compiler.target>1.8</maven.compiler.target>
+                </properties>
+            
+                <modules>
+                    <module>HelloWorldApp-ear</module>
+                    <module>HelloWorldApp-service</module>
+                    <module>HelloWorldApp-rws</module>
+                </modules>
+            
+            </project>
