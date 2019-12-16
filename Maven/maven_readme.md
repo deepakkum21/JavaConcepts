@@ -614,3 +614,39 @@ Maven can have two settings files working at a time:
                 Click on the "Update Settings" button to update the settings. If any confirmation dialog appeared, just click Yes.
 3. ### Maven proxy settings from command line
     `$ mvn clean install -DproxySet=true -DproxyHost=ur.proxy.server -DproxyPort=port`
+
+
+## Maven Enforce Minimum Java Version
+- Many times, we **need to enforce that java build process should halt immediately if deployment environment does not have not a specific operating system, or it does not contain a minimum required java version**. 
+- If you are using maven for build process, then these limitations **can be easily be configured using maven enforcer plugin**.
+- The enforcer plugin provides goals to **control certain environmental constraints such as Maven version, JDK version and OS family** along with many more standard rules and user created rules.
+-               <build>
+                    <plugins>
+                        <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>3.0.0-M2</version>
+                        <executions>
+                            <execution>
+                            <id>enforce-versions</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>2.0.6</version>    // maven version 2
+                                    </requireMavenVersion>          
+                                    <requireJavaVersion>
+                                        <version>1.5</version>     // java version 5 
+                                    </requireJavaVersion>
+                                    <requireOs>
+                                        <family>unix</family>     //  for unix mentioned but if project is compiled using this pom is other os it will throw error
+                                    </requireOs>
+                                </rules>
+                            </configuration>
+                            </execution>
+                        </executions>
+                        </plugin>
+                    </plugins>
+                </build>
