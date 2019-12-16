@@ -650,3 +650,14 @@ Maven can have two settings files working at a time:
                         </plugin>
                     </plugins>
                 </build>
+
+## Maven Create Java Project – Interactive vs Non-interactive modes
+1. ### Maven non-interactive mode
+-       $ mvn archetype:generate 
+            -DgroupId=com.howtodoinjava 
+            -DartifactId=DemoJavaProject
+            -DarchetypeArtifactId=maven-archetype-quickstart 
+            -DinteractiveMode=false
+
+2. ### Maven interactive mode
+- `mvn archetype:generate`
