@@ -831,3 +831,25 @@ Maven can have two settings files working at a time:
 | ------- | ------- |               
 | Project Object Model | Bill Of materials |        
 | BOMs are ordinary pom.xml files — they **contain no source code** and their **only purpose is to declare their bundled modules**. It **defines the versions of all the artifacts that will be created in the library**. Other projects that wish to use the library should import this pom into the dependencyManagement section of their pom | POM files are **more than just dependencies**. For example organization and licenses, the URL of where the project lives, the project’s dependencies, plugins, profiles and many such things. It also **control the complete build process of the project**. |
+
+
+## Java compiler level does not match the version of the installed Java project facet
+### Reason:
+1. This error is because of maven compiler plugin defaults. Which is currently 1.5. So if you are using java 1.6 for building your project, you are going to face this issue every time you run this command:
+`mvn eclipse:eclipse -Dwtpversion=2.0`
+2. According to **maven documentation : “at present the default source setting is 1.5 and the default target setting is 1.5**, independently of the JDK you run Maven with. If you want to change these defaults, you should set source and target as described in Setting the -source and -target of the Java Compiler.”
+### Solution:
+1. To solve this issue, you need to make one time update in your pom.xml file. This update is for overriding the default compiler level in maven compiler plugin.
+2. Update above compiler properties with your desired java version. And place this configuration inside “build” node in pom.xml file like this:
+3.           <build>
+                <finalName>JerseyHelloWorld</finalName>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <source>1.6</source>
+                            <target>1.6</target>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>    
