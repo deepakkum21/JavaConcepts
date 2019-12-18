@@ -153,6 +153,7 @@ Maven can have two settings files working at a time:
     - This scope is used to **mark dependencies that should be provided at runtime by JDK or a container**, hence the name. 
     - A good use case for this scope would be a **web application deployed in some container, where the container already provides some libraries itself**.
     - For example, a web server that already provides the Servlet API at runtime, thus in our project, those dependencies can be defined with the provided scope:
+    - *Imagine you are deploying your application to a Java EE compiant server. The server provides all lilbraries implementing the Java EE standard, so you don't need to deploy them with your application. During development, you will need the Java EE libraries with the compile time scope, since you need to compile the classes. During the runtime however the dependencies are provided by the application server. Maven uses the 'provided' scope for such cases*.
     -               <dependency>
                         <groupId>javax.servlet</groupId>
                         <artifactId>servlet-api</artifactId>
@@ -163,6 +164,7 @@ Maven can have two settings files working at a time:
 5. ### Maven dependency scope – runtime (JDBC driver)
     - The dependencies with this scope are **required at runtime**.
     - they're **not needed for compilation of the project code**.
+    - This scope indicates that **the dependency is not required for compilation, but is for execution.**
     - dependencies marked with the runtime scope **will be present in runtime and test classpath**, **but they will be missing from compile classpath**.
     - example of dependencies that should use the runtime scope is a **JDBC driver**:
     -            <dependency>
