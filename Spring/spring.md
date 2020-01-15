@@ -601,6 +601,15 @@
     `<beans default-init-method="myInit" default-destroy-method="cleanUp" >   </beans>`
 5. **Methods of InitializingBean and DisposableBean interface get priority over init-method and destroy-method**  .
 
+## Combining lifecycle mechanisms
+1. Multiple lifecycle mechanisms configured for the same bean, with different initialization methods, are called as follows:
+    - Methods annotated with ***@PostConstruct***
+    - ***afterPropertiesSet()*** as defined by the InitializingBean callback interface
+    - A ***custom configured init()*** method
+2. **Destroy methods are called in the same order**:
+    - Methods annotated with ***@PreDestroy***
+    - ***destroy()*** as defined by the DisposableBean callback interface
+    - A ***custom configured destroy()*** method
 
 ## BeanPostProcessor
 - *Recomended*: **To extend the framework related functionality** (configuration ralated coding)
@@ -614,6 +623,7 @@
     2. `postProcessBeforeInitialization(Object bean, String beanName)` 
         - **execute before initialization of each beans in the Spring IoC Container**.
 - **Note:-** But this bean also has to be registered as bean in spring.xml file. and this will run for all the beans.
+    - `<context:annotation-config/>`  **adds all the beans like PostProcessor beans**
 -               import org.springframework.beans.BeansException;
                 import org.springframework.beans.factory.config.BeanPostProcessor;
 
@@ -689,3 +699,619 @@
 | 2. | BeanFactoryPostProcessor implementations are **"called" during startup of the Spring context after all bean definitions will have been loaded** |  BeanPostProcessor are **"called" when the Spring IoC container instantiates a bean** (i.e. during the startup for all the singleton and on demand for the proptotypes one). |
 
 3. image
+
+## Required Annotation (@Required)
+1. The @Required annotation **applies to bean property setter methods**.
+2.              public class SimpleMovieLister {
+
+                    private MovieFinder movieFinder;
+
+                    @Required
+                    public void setMovieFinder(MovieFinder movieFinder) {
+                        this.movieFinder = movieFinder;
+                    }
+
+                    // ...
+                }
+3. @Required simply **indicates that the affected bean property must be populated at configuration time, through an explicit property value in a bean definition or through autowiring**.
+4. The **container throws an exception if the affected bean property has not been populated**; this allows for eager and explicit failure, **avoiding NullPointerException** .
+5. **@Required annotation will not enforce the property checking**, you have to register an **RequiredAnnotationBeanPostProcessor to aware of the @Required annotation in bean configuration file**.
+6. **org.springframework.beans.factory..annotation.RequiredAnnotationBeanPostProessor** has to declared as a Bean in xml.
+    - `<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"></bean>`
+7. This RequiredAnnotationBeanPostProessor validates that the setter with @Required has a property passed or not, if not throws an exception.
+
+## The Autowired Annotation (@Autowired)
+- `can use @Autowired annotation to auto wire bean on the setter method, constructor or a field`.
+- @Autowired annotation is ***auto wire the bean by matching data type if spring container find more than one beans same data type then it find by name***.
+- **@Autowired annotation will not enforce the property checking**, you have to register an **AutowiredAnnotationBeanPostProcessor to aware of the @Autowired annotation in bean configuration file**.
+    - `<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"></bean>`
+
+### **1. @Autowired Annotation on Setter Method**
+- **@Autowired annotation on setter methods to get ref id of the `<property>` element in XML configuration** file(spring.xml). When Spring finds an @Autowired annotation used with setter methods, it tries to **perform byType autowiring on the method**.
+    1. **@Autowired (ByType)**
+        -       import org.springframework.beans.factory.annotation.Autowired;
+
+                public class Circle { 
+                    private Point center;
+
+                    //using autowired annotation with setter method uses byType to Autowire as point is of type Point ie pointA and that is the only bean of type // Point in xml
+                    @Autowired
+                    public void setCenter(Point point) {
+                            this.center = point;
+                    }
+
+                    public void draw()  {
+                        System.out.println("Circle is drawn of center ("+center.getX()+", "+center.getY()+")");
+                    }
+                }
+
+                <beans>
+                    <bean class="com.deepak.autowiredannotation.tutorial.Circle" id="circle">
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointA">
+                        <property name="x" value="0"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+
+                    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/> 
+                    <!-- add all the beans AnnotationBeanPostProcessor -->
+                    <context:annotation-config></context:annotation-config>
+                </beans>
+    2. **@Autowired (ByName)**
+        - i**f multiple beans are present of same type then to avoid ambiguity it tries to find bean of same name**, if falied to do so gives error not not fulfilling dependency injection.
+                import org.springframework.beans.factory.annotation.Autowired;
+
+                public class Circle { 
+                    private Point center;
+
+                    //using autowired annotation with setter method uses byName to Autowire 
+                    @Autowired
+                    public void setCenter(Point center) {
+                            this.center = center;
+                    }
+
+                    public void draw()  {
+                        System.out.println("Circle is drawn of center ("+center.getX()+", "+center.getY()+")");
+                    }
+                }
+
+
+                <beans>
+                    <bean class="com.deepak.autowiredannotation.tutorial.Circle" id="circle">
+                    </bean>
+                    
+                    <!-- multiple Bean of Point type so autowire will happen using ByName -->
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="center">
+                        <property name="x" value="10"></property>
+                        <property name="y" value="10"></property>
+                    </bean>
+
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointA">
+                        <property name="x" value="0"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointB">
+                        <property name="x" value="-20"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointC">
+                        <property name="x" value="20"></property>
+                        <property name="y" value="0"></property>
+                    </bean> 
+
+                    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/> 
+
+                    <!-- add all the beans AnnotationBeanPostProcessor -->
+                    <context:annotation-config></context:annotation-config>
+                </beans>                      
+
+### **2. @Autowired Annotation on Properties**
+- can **use @Autowired annotation on properties to get ref id of the setter methods**. 
+- When you will pass values of autowired properties using Spring will automatically assign those properties with the passed values or references.
+import org.springframework.beans.factory.annotation.Autowired;
+-               public class Circle { 
+
+                    //using autowired annotation with property
+                    @Autowired
+                    private Point center;
+                    
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+
+                    public void draw() {
+                        System.out.println("Circle is drawn of center ("+center.getX()+", "+center.getY()+")");
+                    }
+                }
+
+                <beans>
+                    <bean class="com.deepak.autowiredannotation.tutorial.Circle" id="circle">
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointA">
+                        <property name="x" value="0"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+
+                    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/> 
+
+                    <!-- add all the beans AnnotationBeanPostProcessor -->
+                    <context:annotation-config></context:annotation-config>
+                </beans>
+
+### **3. @Autowired Annotation on Constructors**
+- can apply @Autowired to constructors as well.
+- A **constructor @Autowired annotation indicates that the constructor should be autowired when creating the bean**, **even if no <constructor-arg/> elements are used while configuring the bean in XML file**.                
+-               import org.springframework.beans.factory.annotation.Autowired;
+
+                public class Circle { 
+                    private Point center;
+                    
+                    //using autowired annotation with constructor
+                    @Autowired
+                    public Center(Point center) {
+                        this.center = center;
+                    }
+
+                    public void draw() {
+                        System.out.println("Circle is drawn of center ("+center.getX()+", "+center.getY()+")");
+                    }
+                }
+### **4. @Autowired Annotation with (required=false) option**
+- By default, `the @Autowired annotation has the required dependency but we can set the required dependency to false`    
+-               public class Circle { 
+
+                    //using autowired annotation with property
+                    @Autowired(required=false)
+                    private Point center;
+                    
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+
+                    public void draw() {
+                        System.out.println("Circle is drawn of center ("+center.getX()+", "+center.getY()+")");
+                    }
+                }
+
+## Spring @Qualifier Annotation
+- The @Autowired annotation is **auto wire the bean by matching data type if spring container find more than one beans same data type then it find by name**. 
+- `problem:- `Suppose **if by name it is not able find any bean, then what will be do for wiring a bean from dependency injection**.
+- `Solution:- `  can **use the one more annotation @Qualifier along with the @Autowired** annotation remove the confusion by specifying which exact bean will be wired. **and in xml file use `<qualifier>` for that bean**
+-               import org.springframework.beans.factory.annotation.Autowired;
+
+                public class Circle { 
+                    private Point center;
+
+                    //using autowired annotation with setter method
+                    //using qualifier annotation for exact bean will be wired
+                    @Autowired
+                    @Qualifier("circleBean")
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+
+                    public void draw() {
+                        System.out.println("Circle is drawn of center ("+center.getX()+", "+center.getY()+")");
+                    }
+                }
+
+
+                <beans xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p" xmlns:security="http://www.springframework.org/schema/security" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xsi:schemalocation="http://www.springframework.org/schema/beans">
+                
+                    <bean class="com.deepak.autowiredannotation.tutorial.Circle" id="circle">
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointA">
+                        <qualifier value="circleBean"></qualifier>
+                        <property name="x" value="0"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointB">
+                        <property name="x" value="-20"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointC">
+                        <property name="x" value="20"></property>
+                        <property name="y" value="0"></property>
+                    </bean> 
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="center">
+                        <property name="x" value="10"></property>
+                        <property name="y" value="10"></property>
+                    </bean>
+
+                    <!-- add all the beans AnnotationBeanPostProcessor -->
+                    <context:annotation-config></context:annotation-config>
+                </beans>
+
+## Spring JSR-250 Annotations with Examples
+- **Java Specification Request**, has the **objective to define a set of annotations that address common semantic concepts and therefore can be used by many Java EE and Java SE components**. This is to **avoid redundant annotations across those components**. 
+- Include @PostConstruct, @PreDestroy and @Resource annotations. JSR-250 aka Common Annotations for the Java Platform was introduced as part of Java EE 5 an is usually used to annotated EJB3s.
+    - `@PostContruct` – This annotation is a**pplied to a method to indicate that it should be invoked after all dependency injection is complete**.
+    - `@PreDestroy` – This is **applied to a method to indicate that it should be invoked before the bean is removed from the Spring context**, i.e. just before it’s destroyed.
+    - `@Resource` – This **duplicates the functionality of @Autowired combined with @Qualifier as you get the additional benefit of being able to name which bean you’re injecting, without the need for two annotations**.    
+
+### ***1. Annotation @Resource***               
+- @Resource **takes a “name” attribute, and by default Spring will interpret that value as the bean name to be injected**. 
+- it `follows by-name semantics`.
+-               public class Circle { 
+                    private Point center;
+                    
+                    @Resource(name="pointB")
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+                }
+
+                <beans xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p" xmlns:security="http://www.springframework.org/schema/security" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xsi:schemalocation="http://www.springframework.org/schema/beans">
+                
+                    <bean class="com.deepak.autowiredannotation.tutorial.Circle" id="circle">
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointA">
+                        <qualifier value="circleBean"></qualifier>
+                        <property name="x" value="0"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <!-- this bean will be autowired -->
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointB">
+                        <property name="x" value="-20"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointC">
+                        <property name="x" value="20"></property>
+                        <property name="y" value="0"></property>
+                    </bean> 
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="center">
+                        <property name="x" value="10"></property>
+                        <property name="y" value="10"></property>
+                    </bean>
+
+                    <!-- add all the beans AnnotationBeanPostProcessor -->
+                    <context:annotation-config></context:annotation-config>
+                </beans>
+- If **no name is specified explicitly, then the default name will be derived from the name of the field or setter method**: 
+    - In `case of a field, it will simply be equivalent to the field name`; 
+    - in `case of a setter method, it will be equivalent to the bean property name`.
+    -           public class Circle { 
+                    private Point center;
+                    
+                    @Resource
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+                } 
+
+                <beans xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p" xmlns:security="http://www.springframework.org/schema/security" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xsi:schemalocation="http://www.springframework.org/schema/beans">
+                
+                    <bean class="com.deepak.autowiredannotation.tutorial.Circle" id="circle">
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointA">
+                        <qualifier value="circleBean"></qualifier>
+                        <property name="x" value="0"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointB">
+                        <property name="x" value="-20"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="pointC">
+                        <property name="x" value="20"></property>
+                        <property name="y" value="0"></property>
+                    </bean> 
+                    
+                    <!-- this bean will be autowired using property name -->
+                    <bean class="com.deepak.autowiredannotation.tutorial.Point" id="center">
+                        <property name="x" value="10"></property>
+                        <property name="y" value="10"></property>
+                    </bean>
+
+                    <!-- add all the beans AnnotationBeanPostProcessor -->
+                    <context:annotation-config></context:annotation-config>
+                </beans>   
+### ***2. Annotation @PostContruct***
+- can be **applied to methods of the component class**.
+- The @PostConstruct annotation **is used on a method that needs to be executed after dependency injection is done `to perform any initialization`**. 
+- This **method MUST be invoked before the class is put into service**. 
+- This annotation MUST be supported on all classes that support dependency injection.
+- The method on which the @PostConstruct annotation is applied MUST fulfill all of the following criteria – 
+    - The **method MUST NOT have any parameters** except in the case of EJB interceptors in which case it takes an InvocationC ontext object as defined by the EJB specification. 
+    - The **return type of the method MUST be void**. 
+    - The method **MUST NOT throw a checked exception**. 
+    - The method on which @PostConstruct is applied MAY be public, protected, package private or private. 
+    - The method MUST NOT be static except for the application client. 
+    - The method MAY be final. 
+    - If the method throws an unchecked exception the class MUST NOT be put into service except in the case of EJBs where the EJB can handle exceptions and even recover from them.
+-               public class Circle {
+                    @PostConstruct
+                    public void initializeCircle() {
+                        //populates the circle data cache upon initialization...
+                        System.out.println("Init of Circle");
+                    }
+                }
+
+### ***3. Annotation @PreDestroy*** 
+- can be **applied to methods of the component class**.     
+- The **@PreDestroy annotation is used on methods as a callback notification to signal that the instance is in the process of being removed by the container**.  
+- The method annotated with **@PreDestroy is typically used to release resources that it has been holding**. 
+- The method on which the @PreDestroy annotation is applied MUST fulfill all of the following criteria – 
+    - The **method MUST NOT have any parameters** except in the case of EJB interceptors in which case it takes an InvocationContext object as defined by the EJB specification. 
+    - The **return type of the method MUST be void**. 
+    - The method **MUST NOT throw a checked exception**. 
+    - The method on which PreDestroy is applied MAY be public, protected, package private or private. 
+    - The method MUST NOT be static. 
+    - The method MAY be final. 
+    - If the method throws an unchecked exception it is ignored except in the case of EJBs where the EJB can handle exceptions.  
+-               public class Circle {
+                    @PreDestroy
+                    public void destroyCircle() {
+                        //clears the circle related cache upon destruction..
+                        System.out.println("Destroy of Circle");
+                    }
+                }
+
+## Spring @Component, @Repository, @Service and @Controller Stereotype Annotations
+- These annotations are **used to stereotype classes with regard to the application tier that they belong to**. 
+- **Classes that are annotated with one of these annotations will automatically be registered in the Spring application context if** `<context:component-scan>` is in the Spring XML configuration(spring.xml).                                     
+
+| **Annotation** | **Meaning**  |                                   
+| -------------- | ------------ |
+| @Component | generic stereotype for any Spring-managed component |
+| @Repository| stereotype for persistence layer                    |
+| @Service   | stereotype for service layer                        |
+| @Controller| stereotype for presentation layer (spring-mvc)      |
+
+### ***1. @Component***
+- Annotated with class.
+- @Component annotation **marks a java class as a bean** so the **component-scanning mechanism of spring can pick it up and pull it into the application context**. 
+-               @Component
+                public class EmployeeDAOImpl implements EmployeeDAO {
+                    ...
+                }
+
+### ***2. @Repository***
+- Annotated with class.
+- The @Repository annotation is a **marker for any class that fulfills the role or stereotype (also known as Data Access Object or DAO) of a repository**. 
+- Among the uses of this marker is the automatic translation of exceptions.
+- A class that serves in the persistence layer of the application as a data access object (DAO), otherwise known as a repository in some other technologies. Annotate all your DAO classes with @Repository. All your database access logic should be in DAO classes. 
+- It also **makes the unchecked exceptions (thrown from DAO methods) eligible for translation into Spring DataAccessException**.   
+-               @Repository
+                public class EmployeeDAOImpl implements EmployeeDAO {
+                    ...
+                } 
+
+### ***3. @Service***
+- Annotated with class.
+- Annotate all your service classes with @Service. All your business logic should be in Service classes.
+-               @Service
+                public class EmployeeDAOImpl implements EmployeeDAO {
+                    ...
+                } 
+
+### ***4. @Controller***  
+- Annotated with class.
+- When we add the @Controller annotation to a class, we can use another annotation i.e. @RequestMapping; to map URLs to instance methods of a class.
+
+## Enable component scanning
+- The `context:component-scan` element requires a base-package attribute, which, as its name suggests, specifies a starting point for a recursive component search.
+-               <context:component-scan base-package="com.deepak.demo.service" />
+                <context:component-scan base-package="com.deepak.demo.dao" />
+                <context:component-scan base-package="com.deepak.demo.controller" />
+
+## Difference between @Component and @Bean annotations
+
+| **@Component** | **@Bean**  |                                   
+| -------------- | ---------- |
+| used to `auto-detect and auto-configure beans using classpath scanning` | used to `explicitly declare a single bean, rather than letting Spring do it automatically for us` |
+| ***class level annotation***  | ***method level annotation*** |
+
+## Using properties files by MessageSource in Spring
+1. **ApplicationContext** has some extra functionalities **in Spring Framework `which Internatiolization, Messaging, Properties` file** etc.
+
+### ***1. Using org.springframework.context.MessageSource***
+- Its using read message in the class files and display message as the output.
+-       ## myMessage.properties
+
+                greeting=Hello Deepak!
+                drawing.circle=Circle is Drawn!
+                drawing.point=Circle: Point is: ({0}, {1})
+
+
+        ## spring.xml
+
+                <beans xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p" xmlns:security="http://www.springframework.org/schema/security" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xsi:schemalocation="http://www.springframework.org/schema/beans">
+
+                    <context:annotation-config> </context:annotation-config>
+                    <context:component-scan base-package="com.deepak.tutorial.property"></context:component-scan>
+
+                    <bean class="com.deepak.tutorial.property.Point" id="center">
+                        <property name="x" value="20"></property>
+                        <property name="y" value="0"></property>
+                    </bean>
+                    
+                    <bean class="org.springframework.context.support.ResourceBundleMessageSource" id="messageSource">
+                        <property name="basenames">
+                            <list>
+                                <!-- name od the property file (can have a list of property files) -->
+                                <value>myMessages</value>
+                            </list>
+                        </property>
+                    </bean>
+
+                </beans>
+
+
+        ## main
+
+                import org.springframework.context.ApplicationContext;
+                import org.springframework.context.support.ClassPathXmlApplicationContext;
+                public class DrawingApp {
+
+                    public static void main(String[] args) {
+                        ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+
+                        // ResourceBundleMessageSource called
+                        System.out.println(context.getMessage("greeting", null, "Default Greeting", null));
+                        Circle circle = (Circle)context.getBean("circle");
+                        shape.draw();
+                    }
+                }
+
+        ## Circle.java
+                import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.context.MessageSource;
+                import org.springframework.stereotype.Component;
+
+                @Component
+                public class Circle {
+                    @Autowired
+                    private Point center;
+                    @Autowired
+                    private MessageSource messageSource;
+
+                    /**
+                    * @param messageSource the messageSource to set
+                    */
+                    public void setMessageSource(MessageSource messageSource) {
+                        this.messageSource = messageSource;
+                    }
+
+                    /**
+                    * @param center the center to set
+                    */
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+
+                    public void draw() {
+                        System.out.println(this.messageSource.getMessage("drawing.circle", null, "Default Drawing Greeting", null));
+                        System.out.println(this.messageSource.getMessage("drawing.point", new Object[]   {center.getX(), center.getY()}, "Default Drawing Greeting", null));
+                    }
+                }  
+
+### ***2. Using org.springframework.beans.factory.config.PropertyPlaceholderConfigurer:***
+- to read properties file in your Spring application all you need is to configure a **PropertyPlaceholderConfigurer** bean in your application context.
+-       ## myMessage.properties
+
+                X-axis=20
+                Y-axis=0 
+
+
+        ## spring.xml
+
+                <beans>
+                    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" id="placeholderConfig">    
+                        <property name="location" value="classpath:myMessage.properties"> 
+                        
+                        </property>
+                    </bean>  
+                    <bean class="com.deepak.tutorial.property.Point" id="center">
+                        <property name="x" value="${X-axis}"></property>
+                        <property name="y" value="${Y-axis}"></property>
+                    </bean>   
+                </beans>  
+
+
+## Event Handling Spring Framework
+1. Core thing regarding Events
+    - `Event publisher` : the **entity which publishes the event**.
+    - `Event Listener`: The **entity which Listens for the event**.
+    - `the Event`: The **class which conatins info about the event**.
+
+2. In Spring 
+    - the **class which has to listen to event** has to **implement ApplicationListener**
+    - the **class which publishes the events** has to **implement ApplicationEventPublisherAware**
+    - the **class which has the event** has to **implement ApplicationEvent**. 
+
+3.      ## MyEventListener.java
+
+                import org.springframework.context.ApplicationEvent;
+                import org.springframework.context.ApplicationListener;
+                import org.springframework.stereotype.Component;
+
+                @Component
+                // this catches all the event if no userdefined event is published then only SpringFramework related events are published
+                public class MyEventListener implements ApplicationListener {
+
+                    @Override
+                    public void onApplicationEvent(ApplicationEvent event) {
+                        System.out.println(event.toString());
+                    }
+                }  
+
+
+        ## DrawEvent.java
+
+                import org.springframework.context.ApplicationEvent;
+
+                public class DrawEvent extends ApplicationEvent {
+                    private static final long serialVersionUID = 6973014356268900607L;
+
+                    public DrawEvent(Object source) {
+                        super(source);
+                    }
+                    
+                    public String toString() {
+                        return "Draw event occurred";
+                    }
+                }  
+
+        ## Circle.java
+
+                import javax.annotation.Resource;
+
+                import org.springframework.context.ApplicationEventPublisher;
+                import org.springframework.context.ApplicationEventPublisherAware;
+                import org.springframework.context.MessageSource;
+                import org.springframework.stereotype.Controller;
+
+                @Controller
+                public class Circle implements ApplicationEventPublisherAware {
+                    private Point center;
+
+                    private ApplicationEventPublisher publisher;
+                    
+                    /**
+                    * @param center the center to set
+                    */
+                    @Resource(name="pointB")
+                    public void setCenter(Point center) {
+                        this.center = center;
+                    }
+
+                    public void draw() {
+                        System.out.println("Circle is Drawn");
+                        DrawEvent drawEvent = new DrawEvent(this);
+                        publisher.publishEvent(drawEvent);       
+                    }
+
+                    // spring sets the publisher or gives the handle of the publisher
+                    @Override
+                    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+                        this.publisher = publisher;
+                    }
+                }  
+
+        ## spring.xml
+
+                <beans xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xsi:schemalocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+                    <context:annotation-config></context:annotation-config>
+                    <bean class="com.deepak.eventHandling.tutorial.Point" id="pointB">
+                        <property name="x" value="10"></property>
+                        <property name="y" value="20"></property>
+                    </bean>
+                    <context:component-scan base-package="com.deepak.eventHandling.tutorial"></context:component-scan>
+                </beans>                                                     
